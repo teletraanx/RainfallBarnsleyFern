@@ -158,6 +158,48 @@ dataText.color = 0x00ff00;
 const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN",
                     "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
+// === Timeline Rendering ===
+const timelineBar = document.getElementById("timelineBar");
+const timelineIndicator = document.getElementById("timelineIndicator");
+
+function rainfallToColor(rainfall) {
+  if (rainfall <= 50) return "#a56c34";
+  if (rainfall <= 100) return "#96ad2f";
+  if (rainfall <= 200) return "#3ba84d";
+  if (rainfall <= 300) return "#1f6e2c";
+  return "#325c49";
+}
+
+function renderTimeline(row) {
+  timelineBar.innerHTML = ""; // Clear previous segments
+  const timelineLabels = document.getElementById("timelineLabels");
+  timelineLabels.innerHTML = ""; // Clear month labels
+
+  for (let i = 0; i < 12; i++) {
+    const monthName = monthNames[i];
+    const rainfall = parseFloat(row[monthName]) || 0;
+
+    // Create and append segment
+    const segment = document.createElement("div");
+    segment.className = "timelineSegment";
+    segment.style.background = rainfallToColor(rainfall);
+    timelineBar.appendChild(segment);
+
+    // Create and append month label
+    const label = document.createElement("div");
+    label.textContent = monthName;
+    timelineLabels.appendChild(label);
+  }
+
+  timelineIndicator.style.left = "0%";
+}
+
+function updateTimelineIndicator(monthIndex) {
+  const percent = (monthIndex / 12) * 100;
+  timelineIndicator.style.left = `calc(${percent}% - 5px)`;
+}
+
+
 // === Animation Loop ===
 function animate() {
   requestAnimationFrame(animate);
@@ -179,6 +221,13 @@ function animate() {
       dataText.sync();
 
       updateFern(rainfallValue || 0);
+
+      if (currentMonthIndex === 0) {
+        renderTimeline(row); // Only redraw timeline once per year
+      }
+
+      updateTimelineIndicator(currentMonthIndex);
+
     }
 
     currentMonthIndex++;

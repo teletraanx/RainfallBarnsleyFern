@@ -47,6 +47,48 @@
         padding: 5px;
         font-size: 14px;
       }
+
+      #timelineContainer {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80%;
+        height: 30px;
+        background-color: transparent;
+        z-index: 10;
+      }
+
+      #timelineBar {
+        display: flex;
+        height: 10px;
+        width: 100%;
+        border: 1px solid #ccc;
+        box-shadow: 0 0 5px rgba(0,0,0,0.2);
+      }
+
+      .timelineSegment {
+        flex: 1;
+      }
+
+      #timelineIndicator {
+        position: absolute;
+        top: 0;
+        width: 2px;
+        height: 30px;
+        background-color: white;
+        transition: left 0.3s ease-in-out;
+      }
+
+      #timelineLabels {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 4px;
+        font-size: 10px;
+        color: white;
+        text-shadow: 0 0 3px black;
+        font-family: sans-serif;
+      }
     </style>
   </head>
 
@@ -62,6 +104,11 @@
       <div class="legend-item"><span style="background:#325c49"></span> > 300 mm (Flood)</div>
     </div>
 
+    <div id="timelineContainer">
+      <div id="timelineBar"></div>
+      <div id="timelineIndicator"></div>
+      <div id="timelineLabels"></div> 
+    </div>
     <script type="module" src="/main.js"></script>
   </body>
 </html>
