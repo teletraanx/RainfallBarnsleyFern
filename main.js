@@ -22,7 +22,7 @@ let currentRowIndex = 0;
 let currentMonthIndex = 0;
 let isReady = false;
 
-// === Fern ===
+//FERN
 let fern;
 function generateFern(numPoints, color) {
   const ifs = [
@@ -98,7 +98,7 @@ function rainfallToColor(rainfall) {
   return "#325c49";
 }
 
-// === Timeline ===
+//TIMELINE
 function renderTimeline(row) {
   timelineBar.innerHTML = "";
   document.getElementById("timelineLabels").innerHTML = "";
@@ -123,32 +123,32 @@ function updateTimelineIndicator(monthIndex) {
   timelineIndicator.style.left = `calc(${percent}% - 5px)`;
 }
 
-// === Text Objects ===
+//TEXT OBJS
 const subdivisionText = new Text();
 subdivisionText.fontSize = 10;
-subdivisionText.position.set(-25, -50, 0);
+subdivisionText.position.set(-60, -50, 0);
 subdivisionText.color = 0x00ff00;
 scene.add(subdivisionText);
 
 const yearText = new Text();
 yearText.fontSize = 10;
-yearText.position.set(-25, -60, 0);
+yearText.position.set(-10, -60, 0);
 yearText.color = 0x00ff00;
 scene.add(yearText);
 
 const monthText = new Text();
 monthText.fontSize = 10;
-monthText.position.set(-25, -70, 0);
+monthText.position.set(-8, -70, 0);
 monthText.color = 0x00ff00;
 scene.add(monthText);
 
 const dataText = new Text();
 dataText.fontSize = 10;
-dataText.position.set(-25, -80, 0);
+dataText.position.set(-15, -80, 0);
 dataText.color = 0x00ff00;
 scene.add(dataText);
 
-// === Dropdown Population ===
+//DROPDOWN
 function populateDropdown() {
   const subdivisions = [...new Set(rainfallData.map(row => row["SUBDIVISION"]))];
   subdivisions.forEach(sub => {
@@ -175,7 +175,7 @@ function updateYearOptions() {
     yearSelect.appendChild(option);
   });
 
-  // Auto-select first available year
+  //Auto-select first available year
   if (yearSelect.options.length > 0) {
     yearSelect.selectedIndex = 0;
     yearSelect.dispatchEvent(new Event("change"));
@@ -191,7 +191,7 @@ function getSelectedSubdivisionRows() {
   );
 }
 
-// === Event Listeners ===
+//EVENT LISTENERS
 selectElement.addEventListener("change", () => {
   updateYearOptions();
 });
@@ -209,14 +209,14 @@ yearSelect.addEventListener("change", () => {
   renderTimeline(filteredRows[0]);
 });
 
-// === Resize Handling ===
+//RESIZE HANDLING
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// === Fetch Data + Start ===
+//FETCH DATA AND START
 fetch("/RainfallDataClean.csv")
   .then(response => response.text())
   .then(csvText => {
@@ -228,7 +228,7 @@ fetch("/RainfallDataClean.csv")
     isReady = true;
   });
 
-// === Animation ===
+//ANIMATION
 function animate() {
   requestAnimationFrame(animate);
 
