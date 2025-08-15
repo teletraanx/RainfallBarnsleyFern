@@ -11,7 +11,6 @@ document.body.appendChild(renderer.domElement);
 camera.position.z = 275;
 camera.position.y = 60;
 
-// === DOM Elements ===
 const selectElement = document.getElementById("subdivisionSelect");
 const yearSelect = document.getElementById("yearSelect");
 const timelineBar = document.getElementById("timelineBar");
@@ -23,7 +22,7 @@ let currentRowIndex = 0;
 let currentMonthIndex = 0;
 let isReady = false;
 
-// === Fern Variables ===
+// === Fern ===
 let fern;
 function generateFern(numPoints, color) {
   const ifs = [
@@ -59,7 +58,6 @@ function generateFern(numPoints, color) {
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
   geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-
   const material = new THREE.PointsMaterial({ vertexColors: true, size: 0.05 });
   return new THREE.Points(geometry, material);
 }
@@ -91,9 +89,7 @@ function updateFern(rainfall) {
   scene.add(fern);
 }
 
-// === Utility ===
 const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-
 function rainfallToColor(rainfall) {
   if (rainfall <= 50) return "#a56c34";
   if (rainfall <= 100) return "#96ad2f";
@@ -105,8 +101,7 @@ function rainfallToColor(rainfall) {
 // === Timeline ===
 function renderTimeline(row) {
   timelineBar.innerHTML = "";
-  const labelContainer = document.getElementById("timelineLabels");
-  labelContainer.innerHTML = "";
+  document.getElementById("timelineLabels").innerHTML = "";
 
   for (let i = 0; i < 12; i++) {
     const rainfall = parseFloat(row[monthNames[i]]) || 0;
@@ -117,7 +112,7 @@ function renderTimeline(row) {
 
     const label = document.createElement("div");
     label.textContent = monthNames[i];
-    labelContainer.appendChild(label);
+    document.getElementById("timelineLabels").appendChild(label);
   }
 
   timelineIndicator.style.left = "0%";
@@ -128,7 +123,7 @@ function updateTimelineIndicator(monthIndex) {
   timelineIndicator.style.left = `calc(${percent}% - 5px)`;
 }
 
-// === Text Elements ===
+// === Text Objects ===
 const subdivisionText = new Text();
 subdivisionText.fontSize = 10;
 subdivisionText.position.set(-25, -50, 0);
@@ -153,7 +148,7 @@ dataText.position.set(-25, -80, 0);
 dataText.color = 0x00ff00;
 scene.add(dataText);
 
-// === Dropdowns ===
+// === Dropdown Population ===
 function populateDropdown() {
   const subdivisions = [...new Set(rainfallData.map(row => row["SUBDIVISION"]))];
   subdivisions.forEach(sub => {
@@ -163,14 +158,28 @@ function populateDropdown() {
     selectElement.appendChild(option);
   });
 
-  const years = [...new Set(rainfallData.map(row => row["YEAR"]))];
-  years.sort((a, b) => a - b);
-  years.forEach(year => {
+  updateYearOptions();
+}
+
+function updateYearOptions() {
+  const selectedSubdivision = selectElement.value;
+  const validYears = [...new Set(rainfallData
+    .filter(row => row["SUBDIVISION"] === selectedSubdivision)
+    .map(row => row["YEAR"]))];
+
+  yearSelect.innerHTML = "";
+  validYears.sort((a, b) => a - b).forEach(year => {
     const option = document.createElement("option");
     option.value = year;
     option.textContent = year;
     yearSelect.appendChild(option);
   });
+
+  // Auto-select first available year
+  if (yearSelect.options.length > 0) {
+    yearSelect.selectedIndex = 0;
+    yearSelect.dispatchEvent(new Event("change"));
+  }
 }
 
 function getSelectedSubdivisionRows() {
@@ -184,25 +193,34 @@ function getSelectedSubdivisionRows() {
 
 // === Event Listeners ===
 selectElement.addEventListener("change", () => {
-  filteredRows = getSelectedSubdivisionRows();
-  currentRowIndex = 0;
-  currentMonthIndex = 0;
+  updateYearOptions();
 });
 
 yearSelect.addEventListener("change", () => {
   filteredRows = getSelectedSubdivisionRows();
   currentRowIndex = 0;
   currentMonthIndex = 0;
+
+  if (filteredRows.length === 0) {
+    alert("No data available for this subdivision and year.");
+    return;
+  }
+
+  renderTimeline(filteredRows[0]);
 });
 
-// === Fetch Data ===
+// === Resize Handling ===
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// === Fetch Data + Start ===
 fetch("/RainfallDataClean.csv")
   .then(response => response.text())
   .then(csvText => {
-    const parsed = Papa.parse(csvText, {
-      header: true,
-      skipEmptyLines: true
-    });
+    const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
     rainfallData = parsed.data;
     populateDropdown();
     filteredRows = getSelectedSubdivisionRows();
@@ -210,7 +228,7 @@ fetch("/RainfallDataClean.csv")
     isReady = true;
   });
 
-// === Animation Loop ===
+// === Animation ===
 function animate() {
   requestAnimationFrame(animate);
 
@@ -232,10 +250,7 @@ function animate() {
 
       updateFern(rainfallValue || 0);
 
-      if (currentMonthIndex === 0) {
-        renderTimeline(row);
-      }
-
+      if (currentMonthIndex === 0) renderTimeline(row);
       updateTimelineIndicator(currentMonthIndex);
     }
 

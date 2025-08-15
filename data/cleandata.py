@@ -19,6 +19,9 @@ df['MAM'] = df[['MAR', 'APR', 'MAY']].sum(axis=1)
 df['JJAS'] = df[['JUN', 'JUL', 'AUG', 'SEP']].sum(axis=1)
 df['OND'] = df[['OCT', 'NOV', 'DEC']].sum(axis=1)
 
-# Step 3 (Optional): Save cleaned version to a new CSV
+# 🔢 Step 3: Round to 2 decimal places
+df = df.round(2)
+
+# Step 4: Save cleaned version to a new CSV
 df.to_csv('RainfallDataClean.csv', index=False)
 print("✅ Cleaned dataset saved to 'RainfallDataClean.csv'")
