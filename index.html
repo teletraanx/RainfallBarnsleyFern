@@ -39,13 +39,21 @@
         display: inline-block;
       }
 
-      #subdivisionSelect {
+      #subdivisionSelect,
+      #yearSelect {
         position: absolute;
-        top: 10px;
         left: 10px;
         z-index: 10;
         padding: 5px;
         font-size: 14px;
+      }
+
+      #subdivisionSelect {
+        top: 10px;
+      }
+
+      #yearSelect {
+        top: 50px;
       }
 
       #timelineContainer {
@@ -67,7 +75,7 @@
         box-shadow: 0 0 5px rgba(0,0,0,0.2);
       }
 
-      .timelineSegment {
+      .timeline-segment {
         flex: 1;
       }
 
@@ -79,21 +87,26 @@
         background-color: white;
         transition: left 0.3s ease-in-out;
       }
-
       #timelineLabels {
         display: flex;
         justify-content: space-between;
-        margin-top: 4px;
         font-size: 10px;
         color: white;
-        text-shadow: 0 0 3px black;
+        padding-top: 5px;
         font-family: sans-serif;
+        text-align: center;
+        width: 100%;
+      }
+
+      #timelineLabels div {
+        flex: 1;
       }
     </style>
   </head>
 
   <body>
     <select id="subdivisionSelect"></select>
+    <select id="yearSelect"></select>
 
     <div id="legend">
       <h3>Rainfall Legend</h3>
@@ -106,9 +119,10 @@
 
     <div id="timelineContainer">
       <div id="timelineBar"></div>
+      <div id="timelineLabels"></div>
       <div id="timelineIndicator"></div>
-      <div id="timelineLabels"></div> 
     </div>
+
     <script type="module" src="/main.js"></script>
   </body>
 </html>

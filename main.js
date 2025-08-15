@@ -11,23 +11,11 @@ document.body.appendChild(renderer.domElement);
 camera.position.z = 275;
 camera.position.y = 60;
 
-// === DOM: Subdivision Selector ===
+// === DOM Elements ===
 const selectElement = document.getElementById("subdivisionSelect");
-
-function populateDropdown() {
-  const subdivisions = [...new Set(rainfallData.map(row => row["SUBDIVISION"]))];
-  subdivisions.forEach(sub => {
-    const option = document.createElement("option");
-    option.value = sub;
-    option.textContent = sub;
-    selectElement.appendChild(option);
-  });
-}
-
-function getSelectedSubdivisionRows() {
-  const selected = selectElement.value;
-  return rainfallData.filter(row => row["SUBDIVISION"] === selected);
-}
+const yearSelect = document.getElementById("yearSelect");
+const timelineBar = document.getElementById("timelineBar");
+const timelineIndicator = document.getElementById("timelineIndicator");
 
 let rainfallData = [];
 let filteredRows = [];
@@ -37,12 +25,6 @@ let isReady = false;
 
 // === Fern Variables ===
 let fern;
-const maxPoints = 50000;
-const minPoints = 10000;
-const maxRainfall = 1000; // Adjust as needed
-const lushGreen = new THREE.Color(0x3ba84d);
-const dryBrown = new THREE.Color(0xa56c34);
-
 function generateFern(numPoints, color) {
   const ifs = [
     [0.00,  0.00,  0.00,  0.16, 0.00,  0.00, 0.01],
@@ -71,7 +53,6 @@ function generateFern(numPoints, color) {
     const px = x * 30;
     const py = y * 30 - 55;
     positions.push(px, py, 0);
-
     colors.push(color.r, color.g, color.b);
   }
 
@@ -87,28 +68,132 @@ function updateFern(rainfall) {
   if (fern) scene.remove(fern);
 
   let color = new THREE.Color();
-  let pointCount = 2000; // Default minimum
+  let pointCount = 2000;
 
   if (rainfall <= 50) {
-    color.set("#a56c34");      // Dire Low - Dry Brown
+    color.set("#a56c34");
     pointCount = 15000;
   } else if (rainfall <= 100) {
-    color.set("#96ad2f");      // Manageable - Dusty Yellow-Green
+    color.set("#96ad2f");
     pointCount = 30000;
   } else if (rainfall <= 200) {
-    color.set("#3ba84d");      // Healthy - Vibrant Green
+    color.set("#3ba84d");
     pointCount = 40000;
   } else if (rainfall <= 300) {
-    color.set("#1f6e2c");      // Heavy - Darker Rich Green
+    color.set("#1f6e2c");
     pointCount = 50000;
   } else {
-    color.set("#325c49");      // Flood - Stormy Blue-Green
+    color.set("#325c49");
     pointCount = 75000;
   }
 
   fern = generateFern(pointCount, color);
   scene.add(fern);
 }
+
+// === Utility ===
+const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+
+function rainfallToColor(rainfall) {
+  if (rainfall <= 50) return "#a56c34";
+  if (rainfall <= 100) return "#96ad2f";
+  if (rainfall <= 200) return "#3ba84d";
+  if (rainfall <= 300) return "#1f6e2c";
+  return "#325c49";
+}
+
+// === Timeline ===
+function renderTimeline(row) {
+  timelineBar.innerHTML = "";
+  const labelContainer = document.getElementById("timelineLabels");
+  labelContainer.innerHTML = "";
+
+  for (let i = 0; i < 12; i++) {
+    const rainfall = parseFloat(row[monthNames[i]]) || 0;
+    const segment = document.createElement("div");
+    segment.className = "timeline-segment";
+    segment.style.background = rainfallToColor(rainfall);
+    timelineBar.appendChild(segment);
+
+    const label = document.createElement("div");
+    label.textContent = monthNames[i];
+    labelContainer.appendChild(label);
+  }
+
+  timelineIndicator.style.left = "0%";
+}
+
+function updateTimelineIndicator(monthIndex) {
+  const percent = (monthIndex / 12) * 100;
+  timelineIndicator.style.left = `calc(${percent}% - 5px)`;
+}
+
+// === Text Elements ===
+const subdivisionText = new Text();
+subdivisionText.fontSize = 10;
+subdivisionText.position.set(-25, -50, 0);
+subdivisionText.color = 0x00ff00;
+scene.add(subdivisionText);
+
+const yearText = new Text();
+yearText.fontSize = 10;
+yearText.position.set(-25, -60, 0);
+yearText.color = 0x00ff00;
+scene.add(yearText);
+
+const monthText = new Text();
+monthText.fontSize = 10;
+monthText.position.set(-25, -70, 0);
+monthText.color = 0x00ff00;
+scene.add(monthText);
+
+const dataText = new Text();
+dataText.fontSize = 10;
+dataText.position.set(-25, -80, 0);
+dataText.color = 0x00ff00;
+scene.add(dataText);
+
+// === Dropdowns ===
+function populateDropdown() {
+  const subdivisions = [...new Set(rainfallData.map(row => row["SUBDIVISION"]))];
+  subdivisions.forEach(sub => {
+    const option = document.createElement("option");
+    option.value = sub;
+    option.textContent = sub;
+    selectElement.appendChild(option);
+  });
+
+  const years = [...new Set(rainfallData.map(row => row["YEAR"]))];
+  years.sort((a, b) => a - b);
+  years.forEach(year => {
+    const option = document.createElement("option");
+    option.value = year;
+    option.textContent = year;
+    yearSelect.appendChild(option);
+  });
+}
+
+function getSelectedSubdivisionRows() {
+  const selectedSubdivision = selectElement.value;
+  const selectedYear = yearSelect.value;
+  return rainfallData.filter(row =>
+    row["SUBDIVISION"] === selectedSubdivision &&
+    row["YEAR"] === selectedYear
+  );
+}
+
+// === Event Listeners ===
+selectElement.addEventListener("change", () => {
+  filteredRows = getSelectedSubdivisionRows();
+  currentRowIndex = 0;
+  currentMonthIndex = 0;
+});
+
+yearSelect.addEventListener("change", () => {
+  filteredRows = getSelectedSubdivisionRows();
+  currentRowIndex = 0;
+  currentMonthIndex = 0;
+});
 
 // === Fetch Data ===
 fetch("/RainfallDataClean.csv")
@@ -121,84 +206,9 @@ fetch("/RainfallDataClean.csv")
     rainfallData = parsed.data;
     populateDropdown();
     filteredRows = getSelectedSubdivisionRows();
+    if (filteredRows.length > 0) renderTimeline(filteredRows[0]);
     isReady = true;
   });
-
-selectElement.addEventListener("change", () => {
-  filteredRows = getSelectedSubdivisionRows();
-  currentRowIndex = 0;
-  currentMonthIndex = 0;
-});
-
-// === Text Elements ===
-const subdivisionText = new Text();
-scene.add(subdivisionText);
-subdivisionText.fontSize = 10;
-subdivisionText.position.set(-25, -50, 0);
-subdivisionText.color = 0x00ff00;
-
-const yearText = new Text();
-scene.add(yearText);
-yearText.fontSize = 10;
-yearText.position.set(-25, -60, 0);
-yearText.color = 0x00ff00;
-
-const monthText = new Text();
-scene.add(monthText);
-monthText.fontSize = 10;
-monthText.position.set(-25, -70, 0);
-monthText.color = 0x00ff00;
-
-const dataText = new Text();
-scene.add(dataText);
-dataText.fontSize = 10;
-dataText.position.set(-25, -80, 0);
-dataText.color = 0x00ff00;
-
-const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN",
-                    "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-
-// === Timeline Rendering ===
-const timelineBar = document.getElementById("timelineBar");
-const timelineIndicator = document.getElementById("timelineIndicator");
-
-function rainfallToColor(rainfall) {
-  if (rainfall <= 50) return "#a56c34";
-  if (rainfall <= 100) return "#96ad2f";
-  if (rainfall <= 200) return "#3ba84d";
-  if (rainfall <= 300) return "#1f6e2c";
-  return "#325c49";
-}
-
-function renderTimeline(row) {
-  timelineBar.innerHTML = ""; // Clear previous segments
-  const timelineLabels = document.getElementById("timelineLabels");
-  timelineLabels.innerHTML = ""; // Clear month labels
-
-  for (let i = 0; i < 12; i++) {
-    const monthName = monthNames[i];
-    const rainfall = parseFloat(row[monthName]) || 0;
-
-    // Create and append segment
-    const segment = document.createElement("div");
-    segment.className = "timelineSegment";
-    segment.style.background = rainfallToColor(rainfall);
-    timelineBar.appendChild(segment);
-
-    // Create and append month label
-    const label = document.createElement("div");
-    label.textContent = monthName;
-    timelineLabels.appendChild(label);
-  }
-
-  timelineIndicator.style.left = "0%";
-}
-
-function updateTimelineIndicator(monthIndex) {
-  const percent = (monthIndex / 12) * 100;
-  timelineIndicator.style.left = `calc(${percent}% - 5px)`;
-}
-
 
 // === Animation Loop ===
 function animate() {
@@ -223,11 +233,10 @@ function animate() {
       updateFern(rainfallValue || 0);
 
       if (currentMonthIndex === 0) {
-        renderTimeline(row); // Only redraw timeline once per year
+        renderTimeline(row);
       }
 
       updateTimelineIndicator(currentMonthIndex);
-
     }
 
     currentMonthIndex++;
