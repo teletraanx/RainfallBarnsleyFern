@@ -37,8 +37,8 @@ let isReady = false;
 
 // === Fern Variables ===
 let fern;
-const maxPoints = 12000;
-const minPoints = 2000;
+const maxPoints = 50000;
+const minPoints = 10000;
 const maxRainfall = 1000; // Adjust as needed
 const lushGreen = new THREE.Color(0x3ba84d);
 const dryBrown = new THREE.Color(0xa56c34);
@@ -86,10 +86,25 @@ function generateFern(numPoints, color) {
 function updateFern(rainfall) {
   if (fern) scene.remove(fern);
 
-  const clamped = Math.max(0, Math.min(rainfall, maxRainfall));
-  const t = clamped / maxRainfall;
-  const pointCount = Math.floor(minPoints + (maxPoints - minPoints) * t);
-  const color = dryBrown.clone().lerp(lushGreen, t);
+  let color = new THREE.Color();
+  let pointCount = 2000; // Default minimum
+
+  if (rainfall <= 50) {
+    color.set("#a56c34");      // Dire Low - Dry Brown
+    pointCount = 15000;
+  } else if (rainfall <= 100) {
+    color.set("#96ad2f");      // Manageable - Dusty Yellow-Green
+    pointCount = 30000;
+  } else if (rainfall <= 200) {
+    color.set("#3ba84d");      // Healthy - Vibrant Green
+    pointCount = 40000;
+  } else if (rainfall <= 300) {
+    color.set("#1f6e2c");      // Heavy - Darker Rich Green
+    pointCount = 50000;
+  } else {
+    color.set("#325c49");      // Flood - Stormy Blue-Green
+    pointCount = 75000;
+  }
 
   fern = generateFern(pointCount, color);
   scene.add(fern);
