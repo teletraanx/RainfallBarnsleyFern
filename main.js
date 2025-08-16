@@ -22,7 +22,7 @@ let currentRowIndex = 0;
 let currentMonthIndex = 0;
 let isReady = false;
 
-//FERN
+// FERN LOGIC
 let fern;
 function generateFern(numPoints, color) {
   const ifs = [
@@ -98,7 +98,7 @@ function rainfallToColor(rainfall) {
   return "#325c49";
 }
 
-//TIMELINE
+// TIMELINE
 function renderTimeline(row) {
   timelineBar.innerHTML = "";
   document.getElementById("timelineLabels").innerHTML = "";
@@ -123,32 +123,36 @@ function updateTimelineIndicator(monthIndex) {
   timelineIndicator.style.left = `calc(${percent}% - 5px)`;
 }
 
-//TEXT OBJS
+// TEXT OBJS
 const subdivisionText = new Text();
 subdivisionText.fontSize = 10;
-subdivisionText.position.set(-60, -50, 0);
+subdivisionText.anchorX = 'center';
+subdivisionText.position.set(0, -50, 0);
 subdivisionText.color = 0x00ff00;
 scene.add(subdivisionText);
 
 const yearText = new Text();
 yearText.fontSize = 10;
-yearText.position.set(-10, -60, 0);
+yearText.anchorX = 'center';
+yearText.position.set(0, -60, 0);
 yearText.color = 0x00ff00;
 scene.add(yearText);
 
 const monthText = new Text();
 monthText.fontSize = 10;
-monthText.position.set(-8, -70, 0);
+monthText.anchorX = 'center';
+monthText.position.set(0, -70, 0);
 monthText.color = 0x00ff00;
 scene.add(monthText);
 
 const dataText = new Text();
 dataText.fontSize = 10;
-dataText.position.set(-15, -80, 0);
+dataText.anchorX = 'center';
+dataText.position.set(0, -80, 0);
 dataText.color = 0x00ff00;
 scene.add(dataText);
 
-//DROPDOWN
+// DROPDOWN
 function populateDropdown() {
   const subdivisions = [...new Set(rainfallData.map(row => row["SUBDIVISION"]))];
   subdivisions.forEach(sub => {
@@ -175,7 +179,7 @@ function updateYearOptions() {
     yearSelect.appendChild(option);
   });
 
-  //Auto-select first available year
+  // Auto-select first available year
   if (yearSelect.options.length > 0) {
     yearSelect.selectedIndex = 0;
     yearSelect.dispatchEvent(new Event("change"));
@@ -191,7 +195,7 @@ function getSelectedSubdivisionRows() {
   );
 }
 
-//EVENT LISTENERS
+// EVENT LISTENERS
 selectElement.addEventListener("change", () => {
   updateYearOptions();
 });
@@ -209,14 +213,14 @@ yearSelect.addEventListener("change", () => {
   renderTimeline(filteredRows[0]);
 });
 
-//RESIZE HANDLING
+// RESIZE HANDLING
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-//FETCH DATA AND START
+// FETCH DATA AND START
 fetch("/RainfallDataClean.csv")
   .then(response => response.text())
   .then(csvText => {
@@ -228,7 +232,7 @@ fetch("/RainfallDataClean.csv")
     isReady = true;
   });
 
-//ANIMATION
+// ANIMATION
 function animate() {
   requestAnimationFrame(animate);
 
